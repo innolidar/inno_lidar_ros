@@ -75,8 +75,8 @@ struct SourceDriver::Impl
         
 #ifdef ENABLE_IMU_MSG_PARSE
         std::cout << "----------------ENABLE_IMU_MSG_PARSE" << std::endl;
-        m_inno_driver->RegisterImuMsgCallback(std::bind(&SourceDriver::GetImuMsg,this),std::bind(&SourceDriver::PutImuMsg,this,std::placeholders::_1));
-        m_imu_msg_process_thread = std::thread(std::bind(&SourceDriver::ProcessImuMsg, this));
+        m_inno_driver->RegisterImuCallBack(std::bind(&SourceDriver::Impl::PutImuMsg,this,std::placeholders::_1),std::bind(&SourceDriver::Impl::GetImuMsg,this));
+        m_imu_msg_process_thread = std::thread(std::bind(&SourceDriver::Impl::ProcessImuMsg, this));
 #endif  
         m_inno_driver->RegisterPointCloudCallBack(std::bind(&SourceDriver::Impl::PutPointCloud,this,std::placeholders::_1),
                                                 std::bind(&SourceDriver::Impl::GetPointCloud,this));
@@ -228,15 +228,28 @@ struct SourceDriver::Impl
 #ifdef ENABLE_IMU_MSG_PARSE
     std::shared_ptr<ImuMsg> GetImuMsg(void)
     {
-        return nullptr;
+        if(m_free_imu_msg_queue.GetSize())
+        {
+            std::shared_ptr<ImuMsg>  imu = m_free_imu_msg_queue.Pop();
+            if (imu!= nullptr)
+            {
+                //point_cloud->points.clear();
+                return imu;
+            }
+        }
+        return std::make_shared<ImuMsg>();
     }
     void PutImuMsg(std::shared_ptr<ImuMsg> msg)
     {
-        return ;
+        m_imu_msg_queue.Push(msg);
     }
     void ProcessImuMsg()
     {
+        m_to_imu_exit_process=true;
+        while (!m_to_imu_exit_process)
+        {
 
+        }
     }
 #endif
     void SendPointCloud(std::shared_ptr<RosPointCloud> msg)
@@ -250,15 +263,13 @@ protected:
     bool                                                m_is_local_file{false};
     bool                                                m_to_exit_process{false};
     std::thread                                         m_point_cloud_process_thread;
-    SyncQueue<std::shared_ptr<RosPointCloud>>          m_free_point_cloud_queue;
-    SyncQueue<std::shared_ptr<RosPointCloud>>          m_point_cloud_queue;
+    SyncQueue<std::shared_ptr<RosPointCloud>>           m_free_point_cloud_queue;
+    SyncQueue<std::shared_ptr<RosPointCloud>>           m_point_cloud_queue;
 #ifdef ENABLE_IMU_MSG_PARSE
-  
-  
   bool                                                  m_to_imu_exit_process;
   std::thread                                           m_imu_msg_process_thread;
-  SyncQueue<std::shared_ptr<ImuMs>>                     m_free_imu_msg_queue;
-  SyncQueue<std::shared_ptr<ImuMsgg>>                   m_imu_msg_queue;
+  SyncQueue<std::shared_ptr<ImuMsg>>                    m_free_imu_msg_queue;
+  SyncQueue<std::shared_ptr<ImuMsg>>                    m_imu_msg_queue;
 #endif
 private:
     bool                                                m_pcap_repeat{false};

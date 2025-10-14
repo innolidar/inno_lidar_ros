@@ -26,6 +26,11 @@ endif()
 set(PROJECT_NAME inno_lidar_ros)
 
 add_definitions(-DPROJECT_PATH="${PROJECT_SOURCE_DIR}")
+option(ENABLE_IMU_MSG_PARSE "Enable IMU MSG PARSE" ON)
+if(${ENABLE_IMU_MSG_PARSE})
+  add_definitions(-DENABLE_IMU_MSG_PARSE)
+  message(STATUS "Enable IMU MSG PARSE is on")
+endif(${ENABLE_IMU_MSG_PARSE})
 
 set(CMAKE_BUILD_TYPE Release)
 add_definitions(-O3)
