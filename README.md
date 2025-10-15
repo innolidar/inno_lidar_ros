@@ -42,6 +42,15 @@ min_distance：点云呈现最小距离
 max_distance：点云显示最大距离
 pcap_repeat：true表示本地数据循环播放
 is_device_load_calibration：true表示从雷达加载矫正参数（当直连雷达时,非播放本地数据）
+calibrate_folder: 表示从本地加载矫正文件的文件夹路径
+pcap_file: 表示播放的本地文件
+use_status: true 表示使用点云旋转平移功能
+roll: 表示欧拉角roll 角（弧度值）
+pitch: 表示欧拉角pitch 角（弧度值）
+yaw：表示欧拉角yaw 角（弧度值）
+x：表示平移向量x
+y：表示平移向量y
+z：表示平移向量z
 ros_frame_id：帧ID
 ros_send_point_cloud_topic：点云发布的topic
 ros_send_imu_topic：imu发布的topic
