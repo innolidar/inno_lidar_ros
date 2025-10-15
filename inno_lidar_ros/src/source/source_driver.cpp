@@ -51,12 +51,14 @@ struct SourceDriver::Impl
         driver_param.lidar_type = StrToLidarType(lidar_type);
 
         // transform
-        yamlRead<float>(driver_config, "x", driver_param.decoder_param.transform_param.x, 0);
-        yamlRead<float>(driver_config, "y", driver_param.decoder_param.transform_param.y, 0);
-        yamlRead<float>(driver_config, "z", driver_param.decoder_param.transform_param.z, 0);
-        yamlRead<float>(driver_config, "roll", driver_param.decoder_param.transform_param.roll, 0);
-        yamlRead<float>(driver_config, "pitch", driver_param.decoder_param.transform_param.pitch, 0);
-        yamlRead<float>(driver_config, "yaw", driver_param.decoder_param.transform_param.yaw, 0);
+        YAML::Node extrinsic_config = yamlSubNodeAbort(driver_config, "extrinsic");
+        yamlRead<bool>(extrinsic_config, "use_status", driver_param.decoder_param.transform_param.valid, false);
+        yamlRead<float>(extrinsic_config, "x", driver_param.decoder_param.transform_param.x, 0);
+        yamlRead<float>(extrinsic_config, "y", driver_param.decoder_param.transform_param.y, 0);
+        yamlRead<float>(extrinsic_config, "z", driver_param.decoder_param.transform_param.z, 0);
+        yamlRead<float>(extrinsic_config, "roll", driver_param.decoder_param.transform_param.roll, 0);
+        yamlRead<float>(extrinsic_config, "pitch", driver_param.decoder_param.transform_param.pitch, 0);
+        yamlRead<float>(extrinsic_config, "yaw", driver_param.decoder_param.transform_param.yaw, 0);
         
         switch (src_type)
         {
@@ -245,10 +247,16 @@ struct SourceDriver::Impl
     }
     void ProcessImuMsg()
     {
-        m_to_imu_exit_process=true;
+        m_to_imu_exit_process=false;
         while (!m_to_imu_exit_process)
         {
-
+            std::shared_ptr<ImuMsg> msg = m_imu_msg_queue.PopWait(1000);
+            if (msg == NULL)
+            {
+                continue;
+            }
+            SendImuMsg(msg);
+            m_free_imu_msg_queue.Push(msg);
         }
     }
 #endif
@@ -259,6 +267,15 @@ struct SourceDriver::Impl
             m_publish_manager->SendPointCloud(*msg);
         }
     }
+#ifdef ENABLE_IMU_MSG_PARSE
+    void SendImuMsg(std::shared_ptr<ImuMsg> msg)
+    {
+        if(m_publish_manager)
+        {
+            m_publish_manager->SendImuMsg(msg);
+        }
+    }
+#endif
 protected:
     bool                                                m_is_local_file{false};
     bool                                                m_to_exit_process{false};

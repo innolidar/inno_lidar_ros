@@ -1,6 +1,7 @@
 #pragma once
 #include <inno_driver/msg/data_types.hpp>
 #include <inno_driver/msg/point_types.hpp>
+#include <inno_driver/msg/imu_types.hpp>
 #include <vector>
 #ifdef POINT_TYPE_XYZI
 typedef BasePointCloud DrawPointCloud;

@@ -17,11 +17,11 @@
 #if ROS_FOUND==1
 typedef sensor_msgs::PointCloud2 LidarCloud2;
 typedef sensor_msgs::PointField  LidarField;
-//typedef sensor_msgs::PointCloud2Iterator sensor_msgs::PointCloud2Iterator;
+typedef sensor_msgs::Imu         IMU;
 #else
 typedef sensor_msgs::msg::PointCloud2 LidarCloud2;
 typedef sensor_msgs::msg::PointField  LidarField;
-//typedef sensor_msgs::PointCloud2Iterator sensor_msgs::PointCloud2Iterator;
+typedef sensor_msgs::msg::Imu         IMU;
 #endif
 namespace innolight
 {
@@ -124,14 +124,35 @@ public:
         ros_msg.header.stamp.nsec = (uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
 #else
         //ros_msg.header.stamp.nanosec = (uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
-        ros_msg.header.stamp.nanosec =0;
+        ros_msg.header.stamp.nanosec =(uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
 #endif
         ros_msg.header.frame_id = frame_id;
         return ros_msg;
     }
+#ifdef ENABLE_IMU_MSG_PARSE
+    IMU toRosMsg(const std::shared_ptr<ImuMsg>& msg, const std::string& frame_id)
+    {
+        IMU imu_msg;
+        imu_msg.header.stamp.sec =(uint32_t)floor(msg->timestamp);
+#if ROS_FOUND==1
+        imu_msg.header.stamp.nsec =(uint32_t)round((msg->timestamp-imu_msg.header.stamp.sec)*1e9);
+#else
+        imu_msg.header.stamp.nanosec =(uint32_t)round((msg->timestamp - imu_msg.header.stamp.sec) * 1e9); //timestamp
+#endif
+        imu_msg.header.frame_id = frame_id;
+        // Set IMU data
+        imu_msg.angular_velocity.x = msg->angular_velocity_x;
+        imu_msg.angular_velocity.y = msg->angular_velocity_y;
+        imu_msg.angular_velocity.z = msg->angular_velocity_z;
+
+        imu_msg.linear_acceleration.x = msg->linear_acceleration_x;
+        imu_msg.linear_acceleration.y = msg->linear_acceleration_y;
+        imu_msg.linear_acceleration.z = msg->linear_acceleration_z;
+        return imu_msg;
+    }
+#endif
     void Init(const YAML::Node& config)
     {
-
         yamlRead<bool>(config["ros"], "ros_send_by_rows", m_send_by_rows, false);
         bool dense_points;
         yamlRead<bool>(config["driver"], "dense_points", dense_points, false);
@@ -171,6 +192,17 @@ public:
         m_pub->publish(toRosMsg(msg, m_frame_id, m_send_by_rows));
 #endif
     }
+    void SendImuMsg(const std::shared_ptr<ImuMsg>& msg)
+    {
+#ifdef ENABLE_IMU_MSG_PARSE
+#if ROS_FOUND==1
+        m_imu_pub.publish(toRosMsg(msg, m_frame_id)); 
+#else
+        m_imu_pub->publish(toRosMsg(msg, m_frame_id));
+#endif
+#endif
+    
+    }
 private:
 #if ROS_FOUND==1
     std::shared_ptr<ros::NodeHandle> m_nh;
@@ -208,5 +240,11 @@ void PublishManager::SendPointCloud(const RosPointCloud& msg)
 {
     m_impl->SendPointCloud(msg);
 }
+#ifdef ENABLE_IMU_MSG_PARSE
+void PublishManager::SendImuMsg(const std::shared_ptr<ImuMsg>& msg)
+{
+    m_impl->SendImuMsg(msg);
+}
+#endif
 }
 }
