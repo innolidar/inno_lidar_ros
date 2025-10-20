@@ -41,7 +41,13 @@ endif()
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/third_party/inno_driver)
 set(LIB_DIR ${CMAKE_CURRENT_LIST_DIR}/third_party/inno_driver/lib)
-link_directories("${LIB_DIR}")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+  set(SYS_FRAMEWORK "aarch64")
+else()
+  set(SYS_FRAMEWORK "x86_64")
+endif()
+
+link_directories("${LIB_DIR}/${SYS_FRAMEWORK}")
 
 if($ENV{ROS_DISTRO} STREQUAL "humble")  # the ros2 humble requires c++17
 add_definitions(-std=c++17)
@@ -212,7 +218,7 @@ if(rclcpp_FOUND AND ${COMPILE_METHOD} STREQUAL "COLCON")
     rviz
     DESTINATION share/${PROJECT_NAME})
     
-  install(FILES "${LIB_DIR}/libinno_driver.so" DESTINATION lib)
+  install(FILES "${LIB_DIR}/${SYS_FRAMEWORK}/libinno_driver.so" DESTINATION lib)
 
   ament_package()
 
