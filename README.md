@@ -45,9 +45,9 @@ is_device_load_calibration：true表示从雷达加载矫正参数（当直连�
 calibrate_folder: 表示从本地加载矫正文件的文件夹路径
 pcap_file: 表示播放的本地文件
 use_status: true 表示使用点云旋转平移功能
-roll: 表示欧拉角roll 角（弧度值）
-pitch: 表示欧拉角pitch 角（弧度值）
-yaw：表示欧拉角yaw 角（弧度值）
+roll: 表示欧拉角roll 角（角度值）
+pitch: 表示欧拉角pitch 角（角度值）
+yaw：表示欧拉角yaw 角（角度值）
 x：表示平移向量x
 y：表示平移向量y
 z：表示平移向量z
@@ -63,6 +63,7 @@ ROS1依赖于 make 编译 (不包括 ROS2)
 # Compile setup (ORIGINAL,CATKIN,COLCON) 
 #=======================================
 set(COMPILE_METHOD ORIGINAL) 
+
 2. 返回工作空间目录，执行以下命令即可编译&运行
 $cd inno_lidar_ros 
 $mkdir build && cd build 
