@@ -111,8 +111,9 @@ struct SourceDriver::Impl
         m_imu_msg_process_thread.join();
 #endif  
     }
-
-    inline std::shared_ptr<BasePointCloud>  GetPointCloud(void)
+    
+    //inline std::shared_ptr<DrawPointCloud>  GetPointCloud(void)
+    inline std::shared_ptr<DrawPointCloud>  GetPointCloud(void)
     {
         if(m_free_point_cloud_queue.GetSize()>=2)
         {
@@ -126,7 +127,8 @@ struct SourceDriver::Impl
         return std::make_shared<RosPointCloud>();
     }
 
-    void PutPointCloud(std::shared_ptr<BasePointCloud> msg)
+    //void PutPointCloud(std::shared_ptr<BasePointCloud> msg)
+    void PutPointCloud(std::shared_ptr<DrawPointCloud> msg)
     {
         m_point_cloud_queue.Push(std::static_pointer_cast<RosPointCloud>(msg));
         //m_point_cloud_queue.Push(msg);

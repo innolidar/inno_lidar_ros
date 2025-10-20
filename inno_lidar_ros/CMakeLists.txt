@@ -5,7 +5,7 @@ project(inno_lidar_ros C CXX)
 #=======================================
 # Custom Point Type (XYZI, XYZI_TIME,XYZI_SOURCE)
 #=======================================
-set(POINT_TYPE XYZI)
+set(POINT_TYPE XYZI_TIME)
 
 #=======================================
 # Compile setup (ORIGINAL, CATKIN, COLCON)

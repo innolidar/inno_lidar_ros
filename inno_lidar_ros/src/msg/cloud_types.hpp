@@ -8,10 +8,10 @@ typedef BasePointCloud DrawPointCloud;
 typedef Point          DrawPoint;
 #elif POINT_TYPE_TIME
 typedef TimePointCloud DrawPointCloud;
-typedef TimePoint          DrawPoint;
+typedef PointTime          DrawPoint;
 #else 
 typedef SourcePointCloud DrawPointCloud;
-typedef SourcePoint          DrawPoint;
+typedef PointSource          DrawPoint;
 #endif
 
 class RosPointCloud:public DrawPointCloud
