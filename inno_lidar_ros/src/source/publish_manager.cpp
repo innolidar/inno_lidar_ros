@@ -117,7 +117,7 @@ public:
         //ros_msg.header.stamp=std::chrono::system_clock::now();
         //ros_msg.header.stamp = ros_msg.header.stamp.fromSec(inno_msg.timestamp);
 
-        ros_msg.header.stamp.sec = (uint32_t)floor(1000);
+        ros_msg.header.stamp.sec = (uint32_t)floor(inno_msg.timestamp);
         //std::cout<<"inno_msg.timestamp:"<<inno_msg.timestamp<<std::endl;
 #if ROS_FOUND==1
         ros_msg.header.seq = inno_msg.seq;
