@@ -190,14 +190,18 @@ struct SourceDriver::Impl
                     std::shared_ptr<RosPointCloud> msg = m_point_cloud_queue.PopWait(100);
                     if (msg == NULL)
                     {
-                        continue;
+                        std::this_thread::sleep_for(std::chrono::milliseconds(50));
                     }
-                    //std::cout<<"msg->points.size():"<<msg->points.size()<<std::endl;
-                    SendPointCloud(msg);
-                    //m_free_point_cloud_queue.Push(msg);
-                    m_free_point_cloud_queue.Push(std::static_pointer_cast<RosPointCloud>(msg));
-                    is_play=false;
-                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                    else
+                    {
+                        //std::cout<<"msg->points.size():"<<msg->points.size()<<std::endl;
+                        SendPointCloud(msg);
+                        //m_free_point_cloud_queue.Push(msg);
+                        m_free_point_cloud_queue.Push(std::static_pointer_cast<RosPointCloud>(msg));
+                        is_play=false;
+                        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                    }
+                    
                 }
             }
             else
@@ -205,10 +209,13 @@ struct SourceDriver::Impl
                 std::shared_ptr<RosPointCloud> msg = m_point_cloud_queue.PopWait(100);
                 if (msg == NULL)
                 {
-                    continue;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 }
-                SendPointCloud(msg);
-                m_free_point_cloud_queue.Push(std::static_pointer_cast<RosPointCloud>(msg));
+                else
+                {
+                    SendPointCloud(msg);
+                    m_free_point_cloud_queue.Push(std::static_pointer_cast<RosPointCloud>(msg));
+                }
                 //m_free_point_cloud_queue.Push(msg);
             }
         }
@@ -253,12 +260,12 @@ struct SourceDriver::Impl
         while (!m_to_imu_exit_process)
         {
             std::shared_ptr<ImuMsg> msg = m_imu_msg_queue.PopWait(1000);
-            if (msg == NULL)
+            if (msg != NULL)
             {
-                continue;
+                SendImuMsg(msg);
+                m_free_imu_msg_queue.Push(msg);
             }
-            SendImuMsg(msg);
-            m_free_imu_msg_queue.Push(msg);
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
         }
     }
 #endif
