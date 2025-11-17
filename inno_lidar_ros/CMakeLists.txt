@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 #cmake_policy(SET CMP0048 NEW)
 project(inno_lidar_ros C CXX)
-
+# 明确设置CMP0057策略
+if(POLICY CMP0057)
+  cmake_policy(SET CMP0069 NEW)
+endif()
 #=======================================
 # Custom Point Type (XYZI, XYZI_TIME,XYZI_SOURCE)
 #=======================================
@@ -19,9 +22,6 @@ else()
 option(ENABLE_ROS1 "Enable ROS1" ON)
 option(ENABLE_ROS2 "Enable ROS2" OFF)
 endif()
-
-#========================
-# Project details / setup
 #========================
 set(PROJECT_NAME inno_lidar_ros)
 
@@ -105,10 +105,14 @@ if(roscpp_FOUND)
     find_package(catkin REQUIRED COMPONENTS
       roscpp
       sensor_msgs
+      inno_lidar_msg
       roslib)
+    
+    include_directories(${catkin_INCLUDE_DIRS})
 
     catkin_package(CATKIN_DEPENDS 
       sensor_msgs 
+      inno_lidar_msg
       roslib)
 
   endif(${COMPILE_METHOD} STREQUAL "CATKIN")
@@ -137,6 +141,7 @@ if(rclcpp_FOUND AND ${COMPILE_METHOD} STREQUAL "COLCON")
 
   find_package(ament_cmake REQUIRED)
   find_package(sensor_msgs REQUIRED)
+  find_package(inno_lidar_msg REQUIRED)
   find_package(std_msgs REQUIRED)                      
 
 else(rclcpp_FOUND AND ${COMPILE_METHOD} STREQUAL "COLCON")
@@ -207,7 +212,8 @@ if(rclcpp_FOUND AND ${COMPILE_METHOD} STREQUAL "COLCON")
   ament_target_dependencies(inno_lidar_node 
     rclcpp 
     std_msgs 
-    sensor_msgs)
+    sensor_msgs
+    inno_lidar_msg)
 
   install(TARGETS
     inno_lidar_node

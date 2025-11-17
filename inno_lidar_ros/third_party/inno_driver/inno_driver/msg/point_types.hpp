@@ -36,11 +36,15 @@ public:
     bool        is_dense{false};    ///< If is_dense is true, the point cloud does not contain NAN points,
     double      timestamp{0.0};     ///< cloud timestamp
     uint32_t    seq{0};             ///< Sequence number of message
-    std::vector<PointT> points{};
+    uint16_t    device_number;
+    double      trx_temperature{0.f};
+    double      main_temperature{0.f};
+    uint8_t     abnormal_flag{0}; 
+    //std::vector<PointT> points{}; 
 public:
     virtual void PushPoint(const PointT &point)
     {
-      points.push_back(point);
+      //points.push_back(point);
     }
 };
 

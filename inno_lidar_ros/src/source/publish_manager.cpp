@@ -3,12 +3,14 @@
 #include <ros/ros.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <sensor_msgs/PointCloud.h>
+#include <inno_lidar_msg/DeviceStatus.h>
 #ifdef ENABLE_IMU_MSG_PARSE
 #include <sensor_msgs/Imu.h>
 #endif
 #else
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
+#include "inno_lidar_msg/msg/device_status.hpp"
 #include <sstream>
 #ifdef ENABLE_IMU_MSG_PARSE
 #include <sensor_msgs/msg/imu.hpp>
@@ -18,10 +20,12 @@
 typedef sensor_msgs::PointCloud2 LidarCloud2;
 typedef sensor_msgs::PointField  LidarField;
 typedef sensor_msgs::Imu         IMU;
+typedef inno_lidar_msg::DeviceStatus DeviceStatus;
 #else
 typedef sensor_msgs::msg::PointCloud2 LidarCloud2;
 typedef sensor_msgs::msg::PointField  LidarField;
 typedef sensor_msgs::msg::Imu         IMU;
+typedef inno_lidar_msg::msg::DeviceStatus DeviceStatus;
 #endif
 namespace innolight
 {
@@ -33,6 +37,25 @@ public:
     Impl()
     {
 
+    }
+    inline DeviceStatus toRosDeviceStatus(const RosPointCloud& inno_msg,const std::string& frame_id)
+    {
+        DeviceStatus msg;
+        msg.header.frame_id = frame_id;
+        msg.header.stamp.sec = (uint32_t)floor(inno_msg.timestamp);
+        //std::cout<<"inno_msg.timestamp:"<<inno_msg.timestamp<<std::endl;
+#if ROS_FOUND==1
+        msg.header.seq = inno_msg.seq;
+        msg.header.stamp.nsec = (uint32_t)round((inno_msg.timestamp - msg.header.stamp.sec) * 1e9);
+#else
+        //ros_msg.header.stamp.nanosec = (uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
+        msg.header.stamp.nanosec =(uint32_t)round((inno_msg.timestamp - msg.header.stamp.sec) * 1e9);
+#endif
+        msg.device_number=inno_msg.device_number;
+        msg.trx_temperature=inno_msg.trx_temperature;
+        msg.main_temperature=inno_msg.main_temperature;
+        msg.abnormal_flag=inno_msg.abnormal_flag;
+        return msg;
     }
     inline LidarCloud2 toRosMsg(const RosPointCloud& inno_msg, const std::string& frame_id, bool send_by_rows)
     {
@@ -100,7 +123,7 @@ public:
             *iter_timestamp = point.timestamp;
             ++iter_timestamp;
 #elif defined(POINT_TYPE_SOURCE)
-            *iter_timestamp = point.timestamp;
+            *iter_timestamp = point.timestamp;ros_msg
             *iter_distance = point.distance;
             *iter_horizontal = point.horizontal;
             *iter_vertical = point.vertical;
@@ -165,10 +188,13 @@ public:
         std::stringstream node_name;
         node_name << "inno_points_destination_" << node_index++;
         
+        std::string ros_device_status_send_topic;
+        yamlRead<std::string>(config["ros"],"ros_device_status_send_topic", ros_device_status_send_topic, "device_status");
         //m_node_ptr=std::make_shared<rclcpp::Node>(node_name.str());
 #if ROS_FOUND==1
         m_nh = std::unique_ptr<ros::NodeHandle>(new ros::NodeHandle());
         m_pub = m_nh->advertise<sensor_msgs::PointCloud2>(ros_send_topic, 100);
+        m_device_status_pub=m_nh->advertise<DeviceStatus>(ros_device_status_send_topic,100);
 #ifdef ENABLE_IMU_MSG_PARSE
         std::string ros_send_imu_data_topic;
         yamlRead<std::string>(config["ros"],"ros_send_imu_topic", ros_send_imu_data_topic, "inno_imu");
@@ -177,6 +203,7 @@ public:
 #else
         m_nh=std::make_shared<rclcpp::Node>(node_name.str());
         m_pub = m_nh->create_publisher<sensor_msgs::msg::PointCloud2>(ros_send_topic, 100);
+        m_device_status_pub=m_nh->create_publisher<DeviceStatus>(ros_device_status_send_topic, 100);
 #ifdef ENABLE_IMU_MSG_PARSE
         std::string ros_send_imu_data_topic;
         yamlRead<std::string>(config["ros"],"ros_send_imu_topic", ros_send_imu_data_topic, "inno_imu");
@@ -188,8 +215,10 @@ public:
     {
 #if ROS_FOUND==1
         m_pub.publish(toRosMsg(msg, m_frame_id, m_send_by_rows)); 
+        m_device_status_pub.publish(toRosDeviceStatus(msg,m_frame_id));
 #else
         m_pub->publish(toRosMsg(msg, m_frame_id, m_send_by_rows));
+        m_device_status_pub->publish(toRosDeviceStatus(msg,m_frame_id));
 #endif
     }
     void SendImuMsg(const std::shared_ptr<ImuMsg>& msg)
@@ -207,12 +236,14 @@ private:
 #if ROS_FOUND==1
     std::shared_ptr<ros::NodeHandle> m_nh;
     ros::Publisher  m_pub;
+    ros::Publisher  m_device_status_pub;
 #ifdef ENABLE_IMU_MSG_PARSE
     ros::Publisher m_imu_pub; 
 #endif
 #else
     std::shared_ptr<rclcpp::Node>    m_nh;
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_pub;
+    rclcpp::Publisher<DeviceStatus>::SharedPtr m_device_status_pub;
 #ifdef ENABLE_IMU_MSG_PARSE
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_imu_pub;
 #endif

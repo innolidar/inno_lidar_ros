@@ -7,9 +7,10 @@ enum class LidarType:int
     None=0x00,
     AOD192=0x01,
     IFN56=0x10,
-    FW192S=0x20,
-    FW192A=0x21,
-    IFW192S=0x22,
+    FW192SA=0x20,
+    FW192SB=0x21,
+    FW192A=0x30,
+    IFW192S=0x40,
 };
 
 enum class InputType:int
@@ -24,7 +25,8 @@ inline size_t GetLidarList(const LidarType** types)
   {
     LidarType::AOD192,
     LidarType::IFN56,
-    LidarType::FW192S,
+    LidarType::FW192SA,
+    LidarType::FW192SB,
     LidarType::FW192A,
     LidarType::IFW192S
   };
@@ -44,7 +46,9 @@ inline size_t GetLaserNum(LidarType type)
       return 256;
     case LidarType::IFN56:
       return 56;
-    case LidarType::FW192S:
+    case LidarType::FW192SA:
+      return 192;
+    case LidarType::FW192SB:
       return 192;
     case LidarType::FW192A:
       return 192;
@@ -67,8 +71,11 @@ inline std::string LidarTypeToStr(const LidarType& type)
     case LidarType::IFN56:
       str= "IFN56";
       break;
-    case LidarType::FW192S:
-      str= "FW192S";
+    case LidarType::FW192SA:
+      str= "FW192SA";
+      break;
+    case LidarType::FW192SB:
+      str= "FW192SB";
       break;
     case LidarType::FW192A:
       str= "FW192A";
@@ -111,9 +118,13 @@ inline LidarType StrToLidarType(const std::string& type)
   {
     return LidarType::IFN56;
   }
-  else if (type == "FW192S")
+  else if (type == "FW192SA")
   {
-    return LidarType::FW192S;
+    return LidarType::FW192SA;
+  }
+  else if (type == "FW192SB")
+  {
+    return LidarType::FW192SB;
   }
   else if (type == "FW192A")
   {
