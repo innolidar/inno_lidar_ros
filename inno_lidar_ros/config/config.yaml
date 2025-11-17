@@ -18,9 +18,9 @@ lidar:
       min_distance: 0.02                        #Minimum distance of point cloud
       max_distance: 200                         #Maximum distance of point cloud
       pcap_repeat: true                         #True--repeat play pcap file
-      is_device_load_calibration: false         #True--Use the lidar check param from lidar device
-      calibrate_folder: /home/wenjie/project/driver/ws/backup/ws_v1.0.0/ws/src/inno_lidar_ros/config/ifw192s #
-      pcap_file: /home/wenjie/project/pcap/ifw192s/1.pcap #The path of pcap file
+      is_device_load_calibration: true         #True--Use the lidar check param from lidar device
+      calibrate_folder:  #
+      pcap_file:   #The path of pcap file
       extrinsic:
         use_status: true                        #
         roll: 0                                 #
@@ -33,4 +33,5 @@ lidar:
     ros:
       ros_frame_id: innolidar                             #Frame id of packet message and point cloud message
       ros_send_point_cloud_topic: /innolidar_points       #Topic used to send point cloud through ROS
-      ros_send_imu_topic: /inno_imu       #Topic used to send point cloud through ROS
+      ros_send_imu_topic: /inno_imu                       #Topic used to send point cloud through ROS
+      ros_device_status_send_topic: /device_status        #Topic used to send point cloud through ROS
