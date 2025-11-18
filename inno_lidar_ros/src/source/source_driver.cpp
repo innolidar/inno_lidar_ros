@@ -29,9 +29,9 @@ struct SourceDriver::Impl
 
         //CalibrationParam
         yamlRead<std::string>(driver_config, "check_local_ip", driver_param.calibration_param.local_ip, "0.0.0.0");
-        yamlRead<int>(driver_config, "check_local_port", driver_param.calibration_param.local_port, 8081);
+        yamlRead<int>(driver_config, "check_local_port", driver_param.calibration_param.local_port, driver_param.input_param.local_port+5000);
         yamlRead<std::string>(driver_config, "check_lidar_ip", driver_param.calibration_param.remote_ip, "0.0.0.0");
-        yamlRead<int>(driver_config, "check_lidar_port", driver_param.calibration_param.remote_port, 8081);
+        yamlRead<int>(driver_config, "check_lidar_port", driver_param.calibration_param.remote_port, 7000);
         yamlRead<std::string>(driver_config, "calibrate_folder", driver_param.calibration_param.calibration_folders, "");
         
         //DecodeParam

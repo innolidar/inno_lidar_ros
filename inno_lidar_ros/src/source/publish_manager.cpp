@@ -158,7 +158,7 @@ public:
         IMU imu_msg;
         imu_msg.header.stamp.sec =(uint32_t)floor(msg->timestamp);
 #if ROS_FOUND==1
-        imu_msg.header.stamp.nsec =(uint32_t)round((msg->timestamp-imu_msg.header.stamp.sec)*1e9);
+        imu_msg.header.stamp.nsec =(uint32_t)round(float(msg->timestamp-imu_msg.header.stamp.sec)*1e9);
 #else
         imu_msg.header.stamp.nanosec =(uint32_t)round((msg->timestamp - imu_msg.header.stamp.sec) * 1e9); //timestamp
 #endif
