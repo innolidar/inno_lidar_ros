@@ -1,105 +1,219 @@
 # inno_lidar_ros
-激光雷达ros驱动，现只支持IFW192S类型雷达
-inno_lidar_ros驱动使用说明书
 
-1编译与安装
-inno_lidar_ros 为苏州智驰领驭在 Ubuntu 环境下的雷达ROS驱动软件包，包括了雷达驱动内核，ROS1/ROS2拓展功能。对于没有二次开发需求的用户，或是想直接使用 ROS1/ROS2 进行二次开发的用户，可直接使用本软件包，配合 ROS 自带的 RVIZ 可视化工具即可查看点云。
-下载路径：https://github.com/innolidar/inno_lidar_ros.git 
+## 概述
 
-1.1依赖库与安装
-            1.1.1 ROS环境
-若需在 ROS 环境下使用雷达驱动，则需安装 ROS1/ROS2 相关依赖库： 
-ROS1:
-Ubuntu 16.04 - ROS kinetic desktop-full 
-Ubuntu 18.04 - ROS melodic desktop-full 
-Ubuntu 20.04 - ROS noetic desktop-full 
-ROS2:
-Ubuntu 20.04 - ROS2 foxy desktop  
-Ubuntu 22.04 - ROS2 humble desktop
-安装方式： 参考 http://wiki.ros.org 
-如果ROS1安装了 ROS kinetic desktop-full 版或 ROS melodic desktop-full 版，那么兼容版本其 他依赖库也应该同时被安装了，所以不需要重新安装它们以避免多个版本冲突引起的问题, 因此，强烈建议安装 desktop-full 版，这将节省大量的时间来逐个安装和配置库。
-注：由于inno_lidar_ros支持播放pcap文件，那么inno_lidar_ros编译也依赖libpcap库
+`inno_lidar_ros` 是由苏州智驰领驭开发的 ROS 驱动软件包，专门用于支持 Innolidar 激光雷达。该软件包支持 ROS1 和 ROS2，提供点云数据处理、IMU 数据解析等功能，并包含雷达驱动内核及 ROS1/ROS2 扩展功能。
 
-            1.1.2 编译与运行
-inno_lidar_ros支持三种编译方式；
-编译前需要的准备工作；
-在inno_lidar_ros包中，找到config/config.yaml文件，依据需求配置文件参数。
-配置文件中参数说明：
-msg_source：0：无数据来源；1：数据来源于雷达；2：数据来源pcap文件
-send_point_cloud_ros：true表示发布点云（ros1 or ros2）
-Lidar_type：表示雷达类型，目前只支持IFW192S雷达
-point_type：目前未使用
-cloud_port：点云UDP数据端口
-check_local_port: 加载矫正参数的本地端口
-check_lidar_ip：加载矫正参数的设备IP
-check_lidar_port：加载矫正参数的设备端口
-h_start_angle：点云显示水平角最小值
-h_end_angle：点云显示水平角最大值
+## 特性
 
-v_start_angle：点云显示垂直角最小值
-v_end_angle：点云显示垂直角最大值
-min_distance：点云呈现最小距离
-max_distance：点云显示最大距离
-pcap_repeat：true表示本地数据循环播放
-is_device_load_calibration：true表示从雷达加载矫正参数（当直连雷达时,非播放本地数据）
-calibrate_folder: 表示从本地加载矫正文件的文件夹路径
-pcap_file: 表示播放的本地文件
-use_status: true 表示使用点云旋转平移功能
-roll: 表示欧拉角roll 角（角度值）
-pitch: 表示欧拉角pitch 角（角度值）
-yaw：表示欧拉角yaw 角（角度值）
-x：表示平移向量x
-y：表示平移向量y
-z：表示平移向量z
-ros_frame_id：帧ID
-ros_send_point_cloud_topic：点云发布的topic
-ros_send_imu_topic：imu发布的topic
+- 目前支持激光雷达型号： IFW192S / FW192S / FW192A 
+- 兼容 ROS1 (Noetic, Melodic, Kinetic) 和 ROS2 (Foxy, Humble)
+- 支持实时雷达数据和 pcap 文件回放
+- 提供点云数据发布功能
+- 支持 IMU 数据解析和发布
+- 可配置点云角度范围、距离过滤等参数
+- 支持外参设置（平移和旋转）
 
-ROS1编译：
-ROS1依赖于 make 编译 (不包括 ROS2)
-1. 打开工程内的 CMakeLists.txt 文件，将文件顶部的 set(COMPILE_METHOD ORIGINAL) 
-改为 set(COMPILE_METHOD ORIGINAL)。 
-#======================================= 
-# Compile setup (ORIGINAL,CATKIN,COLCON) 
-#=======================================
-set(COMPILE_METHOD ORIGINAL) 
+## 系统要求
 
-2. 返回工作空间目录，执行以下命令即可编译&运行
-$cd inno_lidar_ros 
-$mkdir build && cd build 
-$cmake .. && make -j4 
-$./ inno_lidar_node 
+- Ubuntu 16.04/18.04/20.04 (ROS1)
+- Ubuntu 20.04/22.04 (ROS2)
+- ROS1: kinetic, melodic 或 noetic
+- ROS2: foxy 或 humble
+- C++14 (ROS1) / C++17 (ROS2 Humble)
+- libpcap-dev (用于 pcap 文件回放)
+- yaml-cpp
 
-ROS1依赖于 ROS-catkin 编译 
-1. 打开工程内的 CMakeLists.txt 文件，将文件顶部的 set(COMPILE_METHOD ORIGINAL) 
-改为 set(COMPILE_METHOD CATKIN)。 
-#======================================= 
-# Compile setup (ORIGINAL,CATKIN,COLCON) 
-#=======================================
-set(COMPILE_METHOD CATKIN) 
-    2. 将 inno_lidar_ros 工程目录下的 package_ros1.xml 文件重命名为 package.xml。
-3. 新建一个文件夹作为工作空间，然后再新建一个名为 src 的文件夹, 将 inno_lidar_ros 工程，放入 src 文件夹内。 
-4. 返回工作空间目录，执行以下命令即可编译&运行(若使用.zsh,将第二句指令替换为 
-source devel/setup.zsh)。 
-$catkin_make 
-$source devel/setup.bash 
-$roslaunch inno_lidar_ros ros1_start.launch
+## 依赖库安装
 
-ROS2编译：
-ROS2只能依赖于ROS2 colcon编译
-1. 打开工程内的 CMakeLists.txt 文件，将文件顶部的 set(COMPILE_METHOD ORIGINAL) 
-改为 set(COMPILE_METHOD COLCON)。 
-#======================================= 
-# Compile setup (ORIGINAL,CATKIN,COLCON) 
-#=======================================
-set(COMPILE_METHOD COLCON) 
-    3. 将 inno_lidar_ros 工程目录下的 package_ros2.xml 文件重命名为 package.xml。
-3. 新建一个文件夹作为工作空间，然后再新建一个名为 src 的文件夹, 将 inno_lidar_ros 工程，放入 src 文件夹内。 
-4. 返回工作空间目录，执行以下命令即可编译&运行(若使用.zsh,将第二句指令替换为 
-source install/setup.zsh)。 
-$colcon build 
-$source install/setup.bash 
-$ros2 launch inno_lidar_ros ros2_start.launch.py
+### ROS 环境
+根据您的系统选择对应的 ROS 版本：
 
+**ROS1:**
+- Ubuntu 16.04 - ROS kinetic desktop-full
+- Ubuntu 18.04 - ROS melodic desktop-full
+- Ubuntu 20.04 - ROS noetic desktop-full
 
+**ROS2:**
+- Ubuntu 20.04 - ROS2 foxy desktop
+- Ubuntu 22.04 - ROS2 humble desktop
 
+安装方式：参考 http://wiki.ros.org
+
+**其他依赖库:**
+```bash
+sudo apt install libpcap-dev libyaml-cpp-dev
+```
+
+## 编译与安装
+
+inno_lidar_ros 支持多种编译方式，包括原始 CMake 编译、ROS1 catkin 编译和 ROS2 colcon 编译。
+
+### 方法一：使用脚本自动编译（推荐）
+
+```bash
+# 编译 ROS2 版本
+./build_ros2.sh
+
+# 编译 ROS1 版本
+./build_ros1.sh
+```
+
+### 方法二：手动编译（详细步骤）
+
+#### ROS1 编译方式
+
+1. 设置编译方法为 CATKIN
+   ```bash
+   cd inno_lidar_ros
+   cp src/inno_lidar_ros/package_ros1.xml src/inno_lidar_ros/package.xml
+   cp src/inno_lidar_msg/package_ros1.xml src/inno_lidar_msg/package.xml
+   sed -i 's/set(COMPILE_METHOD .*)/set(COMPILE_METHOD CATKIN)/' src/inno_lidar_ros/CMakeLists.txt
+   sed -i 's/set(COMPILE_METHOD .*)/set(COMPILE_METHOD CATKIN)/' src/inno_lidar_msg/CMakeLists.txt
+   ```
+
+2. 在工作空间目录下编译
+   ```bash
+   catkin_make
+   source devel/setup.bash
+   roslaunch inno_lidar_ros ros1_start.launch
+   ```
+
+#### ROS2 编译方式
+
+1. 设置编译方法为 COLCON
+   ```bash
+   cd inno_lidar_ros
+   cp src/inno_lidar_ros/package_ros2.xml src/inno_lidar_ros/package.xml
+   cp src/inno_lidar_msg/package_ros2.xml src/inno_lidar_msg/package.xml
+   sed -i 's/set(COMPILE_METHOD .*)/set(COMPILE_METHOD COLCON)/' src/inno_lidar_ros/CMakeLists.txt
+   sed -i 's/set(COMPILE_METHOD .*)/set(COMPILE_METHOD COLCON)/' src/inno_lidar_msg/CMakeLists.txt
+   ```
+
+2. 在工作空间目录下编译
+   ```bash
+   colcon build
+   source install/setup.bash
+   ros2 launch inno_lidar_ros ros2_start.launch.py
+   ```
+
+## 配置说明
+
+在编译前需要根据需求配置 `config/config.yaml` 文件中的参数，具体说明如下：
+
+```yaml
+common:
+  msg_source: 2                                 # 数据来源: 0无数据, 1雷达数据, 2pcap文件
+  send_point_cloud_ros: true                    # 是否通过ROS/ROS2发布点云
+
+lidar:
+  - driver:
+      lidar_type: IFW192S                       # 雷达类型 (目前支持IFW192S)
+      point_type: 0                             # 点云类型: 0(x,y,z,intensity,ring) 1(x,y,z,intensity,ring,time)
+      cloud_port: 8080                          # 雷达点云数据端口
+      check_lidar_ip: 192.168.1.10              # 雷达校准参数IP地址
+      h_start_angle: -360                       # 水平起始角度
+      h_end_angle: 360                          # 水平结束角度
+      v_start_angle: -50                        # 垂直起始角度
+      v_end_angle: 50                           # 垂直结束角度
+      min_distance: 0.02                        # 最小距离过滤
+      max_distance: 200                         # 最大距离过滤
+      pcap_repeat: true                         # pcap文件是否循环播放
+      is_device_load_calibration: false         # 是否从雷达加载校准参数
+      calibrate_folder: /home/andy/tech_tools/innolidar_SDK/inno_lidar_ros/src/inno_lidar_ros/config/ifw192s  # 本地校准文件夹路径
+      pcap_file: /path/to/your/pcap/file.pcap   # pcap文件路径
+      extrinsic:
+        use_status: true                        # 是否使用外参变换
+        roll: 0                                 # 横滚角 (度)
+        pitch: 0                                # 俯仰角 (度)
+        yaw: 0                                  # 偏航角 (度)
+        x: 0                                    # X方向平移
+        y: 0                                    # Y方向平移
+        z: 0                                    # Z方向平移
+
+    ros:
+      ros_frame_id: innolidar                             # ROS坐标系ID
+      ros_send_point_cloud_topic: /innolidar_points       # 点云发布主题
+      ros_send_imu_topic: /inno_imu                       # IMU数据发布主题
+      ros_device_status_send_topic: /device_status        # 设备状态发布主题
+```
+
+## 启动方式
+
+### ROS1 启动
+```bash
+roslaunch inno_lidar_ros ros1_start.launch
+```
+
+### ROS2 启动
+```bash
+ros2 launch inno_lidar_ros ros2_start.launch.py
+```
+
+## 消息类型
+
+该软件包使用了自定义的消息类型定义：
+
+### DeviceStatus.msg
+```
+std_msgs/Header header
+uint16    device_number        # 设备编号
+float64   trx_temperature      # 收发器温度
+float64   main_temperature     # 主板温度
+uint8     abnormal_flag        # 异常标志
+```
+
+## 项目结构
+
+```
+inno_lidar_ros/
+├── build_ros1.sh              # ROS1 构建脚本
+├── build_ros2.sh              # ROS2 构建脚本
+├── README.md
+├── src/
+│   ├── inno_lidar_msg/        # 自定义消息定义
+│   └── inno_lidar_ros/        # 主驱动包
+│       ├── CMakeLists.txt
+│       ├── package_ros1.xml   # ROS1 包配置
+│       ├── package_ros2.xml   # ROS2 包配置
+│       ├── config/            # 配置文件
+│       │   ├── config.yaml    # 主配置文件
+│       │   └── ifw192s/       # 标定文件目录
+│       ├── launch/            # 启动文件
+│       │   ├── ros1_start.launch
+│       │   └── ros2_start.launch.py
+│       ├── node/              # 节点主程序
+│       ├── rviz/              # RViz 配置文件
+│       ├── src/               # 源代码
+│       │   ├── manager/
+│       │   ├── source/
+│       │   └── utility/
+│       └── third_party/       # 第三方依赖
+│           └── inno_driver/   # 驱动库
+```
+
+## 使用场景
+
+1. **实时数据采集**: 将 msg_source 设置为 1，连接实际的雷达,实时数据
+2. **离线数据回放**: 将 msg_source 设置为 2，指定 pcap_file 路径进行数据回放
+3. **点云可视化**: 启动节点后，可通过 RViz 查看点云数据
+4. **IMU 数据处理**: 启用 IMU 消息解析功能，获取 IMU 数据
+
+## 注意事项
+
+1. 确保雷达或 pcap 文件路径配置正确
+2. 根据实际需求调整点云角度范围和距离过滤参数
+3. 如需使用外参变换，请正确配置 extrinsic 参数
+4. 使用离线 pcap 文件时，确保文件路径存在且可访问
+5. 检查网络配置，确保能正确连接到雷达设备
+
+## 故障排除
+
+1. 如果无法接收点云数据，请检查 msg_source 配置
+2. 确保雷达 IP 地址和端口配置正确
+3. 检查防火墙设置，确保 UDP 端口未被阻止
+4. 查看终端输出日志以获取更多调试信息
+
+## 技术支持
+
+下载路径：https://github.com/innolidar/inno_lidar_ros.git
