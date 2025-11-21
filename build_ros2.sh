@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "=== Switch to ROS1 environment ==="
+echo "=== Switch to ROS2 environment ==="
 
 # 切换 package.xml
 cp -f ./src/inno_lidar_msg/package_ros2.xml ./src/inno_lidar_msg/package.xml
