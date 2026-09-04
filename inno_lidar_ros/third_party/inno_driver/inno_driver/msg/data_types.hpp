@@ -11,6 +11,7 @@ enum class LidarType:int
     FW192SB=0x21,
     FW192A=0x30,
     IFW192S=0x40,
+    MECH_M4=0x50
 };
 
 enum class InputType:int
@@ -28,7 +29,8 @@ inline size_t GetLidarList(const LidarType** types)
     LidarType::FW192SA,
     LidarType::FW192SB,
     LidarType::FW192A,
-    LidarType::IFW192S
+    LidarType::IFW192S,
+    LidarType::MECH_M4
   };
 
   if (types) 
@@ -54,6 +56,8 @@ inline size_t GetLaserNum(LidarType type)
       return 192;
     case LidarType::IFW192S:
       return 192;
+    case LidarType::MECH_M4:
+      return 520;
     default:
       return 1;
   }
@@ -82,6 +86,9 @@ inline std::string LidarTypeToStr(const LidarType& type)
       break;
     case LidarType::IFW192S:
       str= "IFW192S";
+      break;
+    case LidarType::MECH_M4:
+      str= "MECH_M4";
       break;
     default:
       str = "ERROR";
@@ -133,6 +140,10 @@ inline LidarType StrToLidarType(const std::string& type)
   else if (type == "IFW192S")
   {
     return LidarType::IFW192S;
+  }
+  else if(type == "MECH_M4")
+  {
+    return LidarType::MECH_M4;
   }
   else
   {
@@ -188,6 +199,8 @@ struct TransformParam  ///< The Point transform parameter
     INNO_INFO  << "------------------------------------------------------" << INNO_REND;
   }
 };
+
+typedef TransformParam Transform;  ///< Alias for TransformParam
 struct InputParam
 {
   InputParam()
@@ -228,12 +241,12 @@ struct DecoderParam
       transform_param.Print();
   }
 public:
-  float           min_distance;            ///< Minimum distance of point cloud range
-  float           max_distance;            ///< Max distance of point cloud range
-  float           h_start_angle;             ///< Start angle of point cloud
-  float           h_end_angle;               ///< End angle of point cloud
-  float           v_start_angle;             ///< Start angle of point cloud
-  float           v_end_angle;               ///< End angle of point cloud
+  float           min_distance{0.f};            ///< Minimum distance of point cloud range
+  float           max_distance{1500.f};            ///< Max distance of point cloud range
+  float           h_start_angle{-90.f};             ///< Start angle of point cloud
+  float           h_end_angle{90.f};               ///< End angle of point cloud
+  float           v_start_angle{-90.f};             ///< Start angle of point cloud
+  float           v_end_angle{90.f};               ///< End angle of point cloud
   TransformParam  transform_param;
 };
 
@@ -257,4 +270,57 @@ struct DriverParam
   InputParam        input_param{};
   DecoderParam      decoder_param{};
   CalibrationParam  calibration_param{};
+};
+
+struct MultiDriverParam
+{
+    MultiDriverParam(const size_t &num_lidars_in)
+        :num_lidars(num_lidars_in)
+    {
+        driver_params = new DriverParam[num_lidars];
+    }
+    ~MultiDriverParam()
+    {
+        if (driver_params != nullptr)
+        {
+            delete[] driver_params;
+            driver_params = nullptr;
+        }
+    }
+    void Print()
+    {
+        for(size_t i=0;i<num_lidars;i++)
+        {
+            driver_params[i].Print();
+        }
+    }
+    bool              is_device_load{false};
+    size_t            num_lidars{0};    
+    DriverParam*      driver_params{nullptr};
+};
+
+struct MultiTransformParam
+{
+    MultiTransformParam(const size_t &num_lidars_in)
+        :num_lidars(num_lidars_in)
+    {
+        transform_params = new TransformParam[num_lidars];
+    }
+    ~MultiTransformParam()
+    {
+        if (transform_params != nullptr)
+        {
+            delete[] transform_params;
+            transform_params = nullptr;
+        }
+    }
+    void Print()
+    {
+        for(size_t i=0;i<num_lidars;i++)
+        {
+            transform_params[i].Print();
+        }
+    }
+    size_t            num_lidars{0};    
+    TransformParam*   transform_params{nullptr};
 };

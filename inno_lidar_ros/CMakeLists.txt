@@ -49,7 +49,7 @@ endif()
 
 link_directories("${LIB_DIR}/${SYS_FRAMEWORK}")
 
-if($ENV{ROS_DISTRO} STREQUAL "humble")  # the ros2 humble requires c++17
+if($ENV{ROS_DISTRO} STREQUAL "humble" OR ENV{ROS_DISTRO} STREQUAL "jazzy")  # the ros2 humble requires c++17
 add_definitions(-std=c++17)
 else()
 add_definitions(-std=c++14)
