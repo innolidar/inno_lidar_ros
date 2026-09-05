@@ -3,3 +3,11 @@
 
 # Ada Library Information
 *.ali
+
+# Colcon build artifacts
+build/
+install/
+log/
+
+model_weights*
+near_filter*
