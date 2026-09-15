@@ -25,10 +25,10 @@ public:
     {
 
     }
-    virtual void PushPoint(const DrawPoint &point) override
+    /*virtual void PushPoint(const DrawPoint &point) override
     {
       points.push_back(point);
     }
 public:
-    std::vector<DrawPoint> points{};
+    std::vector<DrawPoint> points{};*/
 };
