@@ -1,4 +1,6 @@
 #include "publish_manager.h"
+#include <chrono>
+#include <cmath>
 #if ROS_FOUND==1
 #include <ros/ros.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
@@ -31,6 +33,21 @@ namespace innolight
 {
 namespace lidar
 {
+// SDK 的帧时间戳约定为 unix 秒，但部分固件/库版本在线模式下输出的是
+// 设备上电微秒计数（数值超过 int32 秒域），直接截断会让 header.stamp.sec
+// 变成负值，rviz2 构造 rclcpp::Time 时抛异常退出。装不进正 int32 秒域的
+// 时间戳一律回退为系统当前时间。
+static double UsableStampSeconds(double ts)
+{
+    if (!std::isfinite(ts) || ts < 0.0 || ts > 2147483647.0)
+    {
+        return std::chrono::duration_cast<std::chrono::duration<double>>(
+                   std::chrono::system_clock::now().time_since_epoch())
+            .count();
+    }
+    return ts;
+}
+
 struct PublishManager::Impl
 {
 public:
@@ -42,14 +59,15 @@ public:
     {
         DeviceStatus msg;
         msg.header.frame_id = frame_id;
-        msg.header.stamp.sec = (uint32_t)floor(inno_msg.timestamp);
+        const double stamp = UsableStampSeconds(inno_msg.timestamp);
+        msg.header.stamp.sec = (uint32_t)floor(stamp);
         //std::cout<<"inno_msg.timestamp:"<<inno_msg.timestamp<<std::endl;
 #if ROS_FOUND==1
         msg.header.seq = inno_msg.seq;
-        msg.header.stamp.nsec = (uint32_t)round((inno_msg.timestamp - msg.header.stamp.sec) * 1e9);
+        msg.header.stamp.nsec = (uint32_t)round((stamp - msg.header.stamp.sec) * 1e9);
 #else
         //ros_msg.header.stamp.nanosec = (uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
-        msg.header.stamp.nanosec =(uint32_t)round((inno_msg.timestamp - msg.header.stamp.sec) * 1e9);
+        msg.header.stamp.nanosec =(uint32_t)round((stamp - msg.header.stamp.sec) * 1e9);
 #endif
         msg.device_number=inno_msg.device_number;
         msg.trx_temperature=inno_msg.trx_temperature;
@@ -140,14 +158,15 @@ public:
         //ros_msg.header.stamp=std::chrono::system_clock::now();
         //ros_msg.header.stamp = ros_msg.header.stamp.fromSec(inno_msg.timestamp);
 
-        ros_msg.header.stamp.sec = (uint32_t)floor(inno_msg.timestamp);
+        const double stamp = UsableStampSeconds(inno_msg.timestamp);
+        ros_msg.header.stamp.sec = (uint32_t)floor(stamp);
         //std::cout<<"inno_msg.timestamp:"<<inno_msg.timestamp<<std::endl;
 #if ROS_FOUND==1
         ros_msg.header.seq = inno_msg.seq;
-        ros_msg.header.stamp.nsec = (uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
+        ros_msg.header.stamp.nsec = (uint32_t)round((stamp - ros_msg.header.stamp.sec) * 1e9);
 #else
         //ros_msg.header.stamp.nanosec = (uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
-        ros_msg.header.stamp.nanosec =(uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
+        ros_msg.header.stamp.nanosec =(uint32_t)round((stamp - ros_msg.header.stamp.sec) * 1e9);
 #endif
         ros_msg.header.frame_id = frame_id;
         return ros_msg;
@@ -156,11 +175,12 @@ public:
     IMU toRosMsg(const std::shared_ptr<ImuMsg>& msg, const std::string& frame_id)
     {
         IMU imu_msg;
-        imu_msg.header.stamp.sec =(uint32_t)floor(msg->timestamp);
+        const double stamp = UsableStampSeconds(msg->timestamp);
+        imu_msg.header.stamp.sec =(uint32_t)floor(stamp);
 #if ROS_FOUND==1
-        imu_msg.header.stamp.nsec =(uint32_t)round(float(msg->timestamp-imu_msg.header.stamp.sec)*1e9);
+        imu_msg.header.stamp.nsec =(uint32_t)round(float(stamp-imu_msg.header.stamp.sec)*1e9);
 #else
-        imu_msg.header.stamp.nanosec =(uint32_t)round((msg->timestamp - imu_msg.header.stamp.sec) * 1e9); //timestamp
+        imu_msg.header.stamp.nanosec =(uint32_t)round((stamp - imu_msg.header.stamp.sec) * 1e9); //timestamp
 #endif
         imu_msg.header.frame_id = frame_id;
         // Set IMU data
