@@ -11,6 +11,7 @@ enum class LidarType:int
     FW192SB=0x21,
     FW192A=0x30,
     IFW192S=0x40,
+    DY192=0x41,
     MECH_M4=0x50
 };
 
@@ -30,6 +31,7 @@ inline size_t GetLidarList(const LidarType** types)
     LidarType::FW192SB,
     LidarType::FW192A,
     LidarType::IFW192S,
+    LidarType::DY192,
     LidarType::MECH_M4
   };
 
@@ -55,6 +57,8 @@ inline size_t GetLaserNum(LidarType type)
     case LidarType::FW192A:
       return 192;
     case LidarType::IFW192S:
+      return 192;
+    case LidarType::DY192:
       return 192;
     case LidarType::MECH_M4:
       return 520;
@@ -86,6 +90,9 @@ inline std::string LidarTypeToStr(const LidarType& type)
       break;
     case LidarType::IFW192S:
       str= "IFW192S";
+      break;
+    case LidarType::DY192:
+      str= "DY192";
       break;
     case LidarType::MECH_M4:
       str= "MECH_M4";
@@ -141,6 +148,10 @@ inline LidarType StrToLidarType(const std::string& type)
   {
     return LidarType::IFW192S;
   }
+  else if (type == "DY192")
+  {
+    return LidarType::DY192;
+  }
   else if(type == "MECH_M4")
   {
     return LidarType::MECH_M4;
@@ -148,7 +159,7 @@ inline LidarType StrToLidarType(const std::string& type)
   else
   {
     INNO_ERROR << "Wrong lidar type: " << type << INNO_REND;
-    INNO_ERROR << "Please give correct type: AOD192,IFN56,FW192S,FW192A,IFW192S" << INNO_REND;
+    INNO_ERROR << "Please give correct type: AOD192,IFN56,FW192S,FW192A,IFW192S,DY192" << INNO_REND;
     exit(-1);
   }
 }
