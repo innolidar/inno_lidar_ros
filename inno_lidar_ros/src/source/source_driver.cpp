@@ -33,6 +33,11 @@ struct SourceDriver::Impl
         yamlRead<std::string>(driver_config, "check_lidar_ip", driver_param.calibration_param.remote_ip, "0.0.0.0");
         yamlRead<int>(driver_config, "check_lidar_port", driver_param.calibration_param.remote_port, 7000);
         yamlRead<std::string>(driver_config, "calibrate_folder", driver_param.calibration_param.calibration_folders, "");
+        // The SDK LoadCheckFolder crashes on an empty path, fall back to the built-in calibration folder
+        if (driver_param.calibration_param.calibration_folders.empty())
+        {
+            driver_param.calibration_param.calibration_folders = std::string(PROJECT_PATH) + "/config/ifw192s";
+        }
         
         //DecodeParam
         yamlRead<float>(driver_config, "min_distance", driver_param.decoder_param.min_distance, 0);
