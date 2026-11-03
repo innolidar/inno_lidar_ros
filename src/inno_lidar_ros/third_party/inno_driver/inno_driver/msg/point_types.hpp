@@ -70,7 +70,6 @@ public:
       points.emplace_back(point);
     }
 };
-//typedef PointCloud<PointT>       PointCloudT;
 
 typedef PointCloud<Point>       BasePointCloud;
 typedef PointCloud<PointTime>   TimePointCloud;
