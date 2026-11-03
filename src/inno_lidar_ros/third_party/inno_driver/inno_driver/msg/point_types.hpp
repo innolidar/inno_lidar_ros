@@ -41,6 +41,7 @@ struct IFW192Point:public Point
   uint32_t peak_sum;
   uint32_t peak_center;
   uint32_t peak_radius_sum;
+  uint16_t dsp_mode;
 };
 #pragma pack(pop)
 #ifdef __cplusplus
@@ -70,6 +71,7 @@ public:
       points.emplace_back(point);
     }
 };
+//typedef PointCloud<PointT>       PointCloudT;
 
 typedef PointCloud<Point>       BasePointCloud;
 typedef PointCloud<PointTime>   TimePointCloud;
