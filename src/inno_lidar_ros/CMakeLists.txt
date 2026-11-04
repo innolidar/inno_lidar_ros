@@ -13,7 +13,7 @@ set(POINT_TYPE XYZI_TIME)
 #=======================================
 # Compile setup (ORIGINAL, CATKIN, COLCON)
 #=======================================
-set(COMPILE_METHOD CATKIN)
+set(COMPILE_METHOD COLCON)
 set(CMAKE_C_STANDARD 99)
 if(COMPILE_METHOD STREQUAL "COLCON")
 option(ENABLE_ROS1 "Enable ROS1" OFF)
@@ -50,9 +50,11 @@ endif()
 link_directories("${LIB_DIR}/${SYS_FRAMEWORK}")
 
 if($ENV{ROS_DISTRO} STREQUAL "humble" OR ENV{ROS_DISTRO} STREQUAL "jazzy")  # the ros2 humble requires c++17
-add_definitions(-std=c++17)
+  #add_definitions(-std=c++17)
+  set(CMAKE_CXX_STANDARD 17)
 else()
-add_definitions(-std=c++14)
+  #add_definitions(-std=c++14)
+  set(CMAKE_CXX_STANDARD 14)
 endif()
 
 add_compile_options(-Wall)

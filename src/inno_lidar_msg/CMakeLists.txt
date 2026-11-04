@@ -8,7 +8,7 @@ endif()
 #=======================================
 # Compile setup (ORIGINAL, CATKIN, COLCON)
 #=======================================
-set(COMPILE_METHOD CATKIN)
+set(COMPILE_METHOD COLCON)
 
 if(COMPILE_METHOD STREQUAL "COLCON")
 option(ENABLE_ROS1 "Enable ROS1" OFF)

@@ -201,7 +201,7 @@ public:
         m_imu_pub = m_nh->advertise<sensor_msgs::Imu>(ros_send_imu_data_topic, 200);
 #endif
 #else
-        m_nh=std::make_shared<rclcpp::Node>(node_name.str());
+        m_nh=std::make_shared<rclcpp::Node>(node_name.str()); //,rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true)
         m_pub = m_nh->create_publisher<sensor_msgs::msg::PointCloud2>(ros_send_topic, 100);
         m_device_status_pub=m_nh->create_publisher<DeviceStatus>(ros_device_status_send_topic, 100);
 #ifdef ENABLE_IMU_MSG_PARSE
