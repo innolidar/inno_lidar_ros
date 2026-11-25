@@ -123,7 +123,7 @@ public:
             *iter_timestamp = point.timestamp;
             ++iter_timestamp;
 #elif defined(POINT_TYPE_SOURCE)
-            *iter_timestamp = point.timestamp;ros_msg
+            *iter_timestamp = point.timestamp;
             *iter_distance = point.distance;
             *iter_horizontal = point.horizontal;
             *iter_vertical = point.vertical;
