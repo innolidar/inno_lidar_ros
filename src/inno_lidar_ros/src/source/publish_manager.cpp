@@ -158,12 +158,12 @@ public:
     IMU toRosMsg(const std::shared_ptr<ImuMsg>& msg, const std::string& frame_id)
     {
         IMU imu_msg;
-        double timestamp=msg.timestamp>=0?msg.timestamp:0;
-        imu_msg.header.stamp.sec =(uint32_t)floor(msg->timestamp);
+        double timestamp=msg->timestamp>=0?msg->timestamp:0;
+        imu_msg.header.stamp.sec =(uint32_t)floor(timestamp);
 #if ROS_FOUND==1
-        imu_msg.header.stamp.nsec =(uint32_t)round(float(msg->timestamp-imu_msg.header.stamp.sec)*1e9);
+        imu_msg.header.stamp.nsec =(uint32_t)round(float(timestamp-imu_msg.header.stamp.sec)*1e9);
 #else
-        imu_msg.header.stamp.nanosec =(uint32_t)round((msg->timestamp - imu_msg.header.stamp.sec) * 1e9); //timestamp
+        imu_msg.header.stamp.nanosec =(uint32_t)round((timestamp - imu_msg.header.stamp.sec) * 1e9); //timestamp
 #endif
         imu_msg.header.frame_id = frame_id;
         // Set IMU data
