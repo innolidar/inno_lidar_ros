@@ -31,26 +31,6 @@ namespace innolight
 {
 namespace lidar
 {
-inline double toStampSeconds(double ts)
-{
-    // Nanosecond-scale epoch values are far above 1e10; anything smaller
-    // is either already in seconds or invalid.
-    if (ts > 1e10)
-        return ts * 1e-9;
-    return ts;
-}
-inline void setStamp(builtin_interfaces::msg::Time& stamp, double ts)
-{
-    double sec = toStampSeconds(ts);
-    double now = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
-    // Invalid lidar clock (negative/overflowed/unsynced): fall back to host time.
-    if (sec <= 0 || sec > now + 1e6 || sec < now - 1e9)
-    {
-        sec = now;
-    } 
-    stamp.sec = static_cast<int32_t>(floor(sec));
-    stamp.nanosec = static_cast<uint32_t>(round((sec - floor(sec)) * 1e9));
-}
 struct PublishManager::Impl
 {
 public:
