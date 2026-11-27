@@ -31,6 +31,26 @@ namespace innolight
 {
 namespace lidar
 {
+inline double toStampSeconds(double ts)
+{
+    // Nanosecond-scale epoch values are far above 1e10; anything smaller
+    // is either already in seconds or invalid.
+    if (ts > 1e10)
+        return ts * 1e-9;
+    return ts;
+}
+inline void setStamp(builtin_interfaces::msg::Time& stamp, double ts)
+{
+    double sec = toStampSeconds(ts);
+    double now = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
+    // Invalid lidar clock (negative/overflowed/unsynced): fall back to host time.
+    if (sec <= 0 || sec > now + 1e6 || sec < now - 1e9)
+    {
+        sec = now;
+    } 
+    stamp.sec = static_cast<int32_t>(floor(sec));
+    stamp.nanosec = static_cast<uint32_t>(round((sec - floor(sec)) * 1e9));
+}
 struct PublishManager::Impl
 {
 public:
@@ -140,28 +160,29 @@ public:
         //ros_msg.header.stamp=std::chrono::system_clock::now();
         //ros_msg.header.stamp = ros_msg.header.stamp.fromSec(inno_msg.timestamp);
 
-        ros_msg.header.stamp.sec = (uint32_t)floor(inno_msg.timestamp);
+        //ros_msg.header.stamp.sec = (uint32_t)floor(inno_msg.timestamp);
         //std::cout<<"inno_msg.timestamp:"<<inno_msg.timestamp<<std::endl;
-#if ROS_FOUND==1
+        setStamp(ros_msg.header.stamp, inno_msg.timestamp);
+/*#if ROS_FOUND==1
         ros_msg.header.seq = inno_msg.seq;
         ros_msg.header.stamp.nsec = (uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
 #else
         //ros_msg.header.stamp.nanosec = (uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
         ros_msg.header.stamp.nanosec =(uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
-#endif
-        ros_msg.header.frame_id = frame_id;
+#endif*/
         return ros_msg;
     }
 #ifdef ENABLE_IMU_MSG_PARSE
     IMU toRosMsg(const std::shared_ptr<ImuMsg>& msg, const std::string& frame_id)
     {
         IMU imu_msg;
-        imu_msg.header.stamp.sec =(uint32_t)floor(msg->timestamp);
+        /*imu_msg.header.stamp.sec =(uint32_t)floor(msg->timestamp);
 #if ROS_FOUND==1
         imu_msg.header.stamp.nsec =(uint32_t)round(float(msg->timestamp-imu_msg.header.stamp.sec)*1e9);
 #else
         imu_msg.header.stamp.nanosec =(uint32_t)round((msg->timestamp - imu_msg.header.stamp.sec) * 1e9); //timestamp
-#endif
+#endif*/
+        setStamp(imu_msg.header.stamp, msg->timestamp);
         imu_msg.header.frame_id = frame_id;
         // Set IMU data
         imu_msg.angular_velocity.x = msg->angular_velocity_x;
