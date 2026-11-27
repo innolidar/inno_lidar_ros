@@ -141,15 +141,15 @@ public:
         //ros_msg.header.stamp=ros::Time()::now();
         //ros_msg.header.stamp=std::chrono::system_clock::now();
         //ros_msg.header.stamp = ros_msg.header.stamp.fromSec(inno_msg.timestamp);
-
-        ros_msg.header.stamp.sec = (uint32_t)floor(inno_msg.timestamp);
+        double timestamp=inno_msg.timestamp>=0?inno_msg.timestamp:0;
+        ros_msg.header.stamp.sec = (uint32_t)floor(timestamp);
         //std::cout<<"inno_msg.timestamp:"<<inno_msg.timestamp<<std::endl;
 #if ROS_FOUND==1
         ros_msg.header.seq = inno_msg.seq;
-        ros_msg.header.stamp.nsec = (uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
+        ros_msg.header.stamp.nsec = (uint32_t)round((timestamp - ros_msg.header.stamp.sec) * 1e9);
 #else
         //ros_msg.header.stamp.nanosec = (uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
-        ros_msg.header.stamp.nanosec =(uint32_t)round((inno_msg.timestamp - ros_msg.header.stamp.sec) * 1e9);
+        ros_msg.header.stamp.nanosec =(uint32_t)round((timestamp - ros_msg.header.stamp.sec) * 1e9);
 #endif
         ros_msg.header.frame_id = frame_id;
         return ros_msg;
@@ -158,6 +158,7 @@ public:
     IMU toRosMsg(const std::shared_ptr<ImuMsg>& msg, const std::string& frame_id)
     {
         IMU imu_msg;
+        double timestamp=msg.timestamp>=0?msg.timestamp:0;
         imu_msg.header.stamp.sec =(uint32_t)floor(msg->timestamp);
 #if ROS_FOUND==1
         imu_msg.header.stamp.nsec =(uint32_t)round(float(msg->timestamp-imu_msg.header.stamp.sec)*1e9);
